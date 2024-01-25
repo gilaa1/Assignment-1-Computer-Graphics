@@ -61,6 +61,30 @@ static unsigned char* convolution(unsigned char* data, float filter[], int width
 }
 //-----------------------------------------------------------------------------
 
+//grayscale
+//-----------------------------------------------------------------------------
+unsigned char* greyScale(unsigned char* originalData, int width, int height)
+{
+	unsigned char* greyScaleData = new unsigned char[width * height * 4];
+	std::memcpy(greyScaleData, originalData, width * height * 4);
+	for (int i = 0;i < width * height * 4; i = i + 4) {
+
+		int red = originalData[i];
+		int green = originalData[i + 1];
+		int blue = originalData[i + 2];
+
+
+		int grayscaleValue = (red + green + blue) / 3;
+		greyScaleData[i] = (grayscaleValue / 16) * 16;
+		greyScaleData[i + 1] = (grayscaleValue / 16) * 16;
+		greyScaleData[i + 2] = (grayscaleValue / 16) * 16;
+		greyScaleData[i + 3] = 255;
+	}
+	return greyScaleData;
+}
+
+//-----------------------------------------------------------------------------
+
 //Canny Edge Detection
 //-----------------------------------------------------------------------------
 unsigned char* creatMagnitudeImg(unsigned char* xDerivativeImg, unsigned char* yDerivativeImg, int width, int height)
@@ -350,11 +374,9 @@ int main(int argc, char* argv[])
 	size_t dataSize = width * height * sizeof(unsigned char) * 4;
 
 	// Create a new array and copy the data
-	unsigned char* greyScaleData = new unsigned char[dataSize];
-	std::memcpy(greyScaleData, originalData, dataSize);
+	
 
-
-
+	unsigned char* lenaGreyScale;
 	float gaussianFilter[] = { 1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0 };
 	float x_Derivative[] = { 0,0,0,1,-1,0,0,0,0 };
 	float y_Derivative[] = { 0,0,0,0,-1,0,0,1,0 };
@@ -368,6 +390,7 @@ int main(int argc, char* argv[])
 	unsigned char* lenaHalftoneImg;
 	unsigned char* lenaFloydSteinbergImg;
 
+	lenaGreyScale = greyScale(originalData, width, height);
 	lenaGaussian = convolution(originalData, gaussianFilter, width, height);
 	lenaGaussianXderiative = convolution(lenaGaussian, x_Derivative, width, height);
 	lenaGaussianYderiative = convolution(lenaGaussian, y_Derivative, width, height);
@@ -376,12 +399,12 @@ int main(int argc, char* argv[])
 	lenaHalftoneImg = halftone(originalData, width, height);
 	lenaFloydSteinbergImg = floydSteinberg(originalData, width, height);
 
-	std::cout << "end of loop";
+	std::cout << "dddd";
 	display.SetScene(scn);
 
 	//added in 21.01
 
-	scn->AddTexture(256, 256, greyScaleData);
+	scn->AddTexture(256, 256, lenaGreyScale);
 	scn->SetShapeTex(0, 0);
 	scn->CustomDraw(1, 0, scn->BACK, true, false, 0);
 
@@ -416,7 +439,6 @@ int main(int argc, char* argv[])
 	delete scn;
 
 	stbi_image_free(originalData);
-	delete[] greyScaleData;
 	return 0;
 }
 
