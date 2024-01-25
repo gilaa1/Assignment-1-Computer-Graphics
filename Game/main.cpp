@@ -7,6 +7,8 @@
 #include <iostream>
 #include <stb_image_write.h>
 
+//concolution
+//-----------------------------------------------------------------------------
 static unsigned char* getNeighbors(unsigned char* img, int pixel, int width)
 {
 	unsigned char* ans = new unsigned char[9];
@@ -25,12 +27,12 @@ static unsigned char* getNeighbors(unsigned char* img, int pixel, int width)
 }
 
 static unsigned char* convolution(unsigned char* data, float filter[], int width, int height) {
-	unsigned char* output = new unsigned char[width * height * 4]; 
+	unsigned char* output = new unsigned char[width * height * 4];
 	std::memcpy(output, data, width * height * 4);
 	for (int x = 0;x < width;x++) {
 		for (int y = 0;y < height;y++) {
 			float sum = 0;
-			if (x == 0 || x == width-1 || y == 0 || y == height-1 ) {
+			if (x == 0 || x == width - 1 || y == 0 || y == height - 1) {
 				sum = 0;
 				int currPixel = y * 4 * width + x * 4;
 				output[currPixel] = 0;
@@ -57,12 +59,14 @@ static unsigned char* convolution(unsigned char* data, float filter[], int width
 	}
 	return output;
 }
+//-----------------------------------------------------------------------------
 
-
+//Canny Edge Detection
+//-----------------------------------------------------------------------------
 unsigned char* creatMagnitudeImg(unsigned char* xDerivativeImg, unsigned char* yDerivativeImg, int width, int height)
 {
-	unsigned char* magnitudeImg = new unsigned char[width * height*4];
-	for (int i = 0; i < width * height * 4; i=i+4) {
+	unsigned char* magnitudeImg = new unsigned char[width * height * 4];
+	for (int i = 0; i < width * height * 4; i = i + 4) {
 		float xSquared = static_cast<float>(xDerivativeImg[i]) * static_cast<float>(xDerivativeImg[i]);
 		float ySquared = static_cast<float>(yDerivativeImg[i]) * static_cast<float>(yDerivativeImg[i]);
 		magnitudeImg[i] = std::sqrt(xSquared + ySquared);
@@ -146,6 +150,12 @@ unsigned char* nonMaximumSuppression(unsigned char* magnitudeImg, unsigned char*
 	}
 	return nonMaxSuppressionImg;
 }
+
+//-----------------------------------------------------------------------------
+
+
+//halftone
+//-----------------------------------------------------------------------------
 unsigned char* halftone(unsigned char* img, int width, int height)
 {
 	unsigned char* halftoneImg = new unsigned char[width * 2 * height * 2 * 4];
@@ -224,11 +234,14 @@ unsigned char* halftone(unsigned char* img, int width, int height)
 
 	return halftoneImg;
 }
+//-----------------------------------------------------------------------------
 
 
+//floydSteinberg
+//-----------------------------------------------------------------------------
 unsigned char greyScaleTruncation(unsigned char originalPixel)
 {
-		return (originalPixel/16)*16;
+	return (originalPixel / 16) * 16;
 }
 
 unsigned char* floydSteinberg(unsigned char* img, int width, int height)
@@ -237,15 +250,15 @@ unsigned char* floydSteinberg(unsigned char* img, int width, int height)
 	std::memcpy(floydSteinbergImg, img, width * height * 4);
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
-			int newPixel= greyScaleTruncation(floydSteinbergImg[(y * width + x) * 4]+0.5);
-			float e= img[(y * width + x) * 4] - newPixel;
-			floydSteinbergImg[(y * width + x ) * 4] = newPixel;
-			floydSteinbergImg[(y * width + x ) * 4 + 1] = newPixel;
-			floydSteinbergImg[(y * width + x ) * 4 + 2] = newPixel;
-			floydSteinbergImg[(y * width + x ) * 4 + 3] = 255;
+			int newPixel = greyScaleTruncation(floydSteinbergImg[(y * width + x) * 4] + 0.5);
+			float e = img[(y * width + x) * 4] - newPixel;
+			floydSteinbergImg[(y * width + x) * 4] = newPixel;
+			floydSteinbergImg[(y * width + x) * 4 + 1] = newPixel;
+			floydSteinbergImg[(y * width + x) * 4 + 2] = newPixel;
+			floydSteinbergImg[(y * width + x) * 4 + 3] = 255;
 
 			if (x + 1 < width) {
-				floydSteinbergImg[(y * width + x + 1) * 4 ] += e * (7 / 16.0);
+				floydSteinbergImg[(y * width + x + 1) * 4] += e * (7 / 16.0);
 				floydSteinbergImg[(y * width + x + 1) * 4 + 1] += e * (7 / 16.0);
 				floydSteinbergImg[(y * width + x + 1) * 4 + 2] += e * (7 / 16.0);
 				floydSteinbergImg[(y * width + x + 1) * 4 + 3] = 255;
@@ -273,7 +286,10 @@ unsigned char* floydSteinberg(unsigned char* img, int width, int height)
 	}
 	return floydSteinbergImg;
 }
+//-----------------------------------------------------------------------------
 
+//create text file
+//-----------------------------------------------------------------------------
 void generateImageBW(unsigned char* img, int width, int height, const char* fileName)
 {
 	FILE* outputFile = fopen(fileName, "w");
@@ -282,10 +298,10 @@ void generateImageBW(unsigned char* img, int width, int height, const char* file
 		return;
 	}
 	else {
-		for (int y = 0;y < height;y = y ++) {
+		for (int y = 0;y < height;y = y++) {
 			for (int x = 0;x < width;x = x++) {
 				int i = (y * width + x) * 4;
-					fprintf(outputFile, "%d,", img[i]/255);
+				fprintf(outputFile, "%d,", img[i] / 255);
 			}
 			fprintf(outputFile, "\n");
 		}
@@ -304,13 +320,14 @@ void generateImageGS(unsigned char* img, int width, int height, const char* file
 		for (int y = 0;y < height;y = y++) {
 			for (int x = 0;x < width;x = x++) {
 				int i = (y * width + x) * 4;
-				fprintf(outputFile, "%d,", img[i]/16);
+				fprintf(outputFile, "%d,", img[i] / 16);
 			}
 			fprintf(outputFile, "\n");
 		}
 	}
 	fclose(outputFile);
 }
+//-----------------------------------------------------------------------------
 
 int main(int argc, char* argv[])
 {
@@ -330,14 +347,14 @@ int main(int argc, char* argv[])
 
 	int width, height, numComponents;
 	unsigned char* originalData = stbi_load(("../res/textures/lena256.jpg"), &width, &height, &numComponents, 4);
-	size_t dataSize = width * height * sizeof(unsigned char) *4;
+	size_t dataSize = width * height * sizeof(unsigned char) * 4;
 
 	// Create a new array and copy the data
 	unsigned char* greyScaleData = new unsigned char[dataSize];
 	std::memcpy(greyScaleData, originalData, dataSize);
-	
 
-	
+
+
 	float gaussianFilter[] = { 1 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 4 / 16.0, 2 / 16.0, 1 / 16.0, 2 / 16.0, 1 / 16.0 };
 	float x_Derivative[] = { 0,0,0,1,-1,0,0,0,0 };
 	float y_Derivative[] = { 0,0,0,0,-1,0,0,1,0 };
@@ -384,7 +401,7 @@ int main(int argc, char* argv[])
 	display.SwapBuffers();
 
 	generateImageBW(lenaNonMaxSuppressionImg, width, height, "../res/textures/img4.txt");
-	generateImageBW(lenaHalftoneImg, width*2, height*2, "../res/textures/img5.txt");
+	generateImageBW(lenaHalftoneImg, width * 2, height * 2, "../res/textures/img5.txt");
 	generateImageGS(lenaFloydSteinbergImg, width, height, "../res/textures/img6.txt");
 	//-----
 
